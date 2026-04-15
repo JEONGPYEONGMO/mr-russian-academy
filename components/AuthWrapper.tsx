@@ -9,8 +9,8 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const adminLoggedIn = useAuthStore((s) => s.adminLoggedIn);
 
-  // /student/* 경로는 학생 전용 (관리자 인증 불필요, 사이드바 없음)
-  const isStudentRoute = pathname.startsWith('/student');
+  // /student 또는 /student/* 경로는 학생 전용 (관리자 인증 불필요, 사이드바 없음)
+  const isStudentRoute = pathname === '/student' || pathname.startsWith('/student/');
 
   if (isStudentRoute) {
     return <>{children}</>;

@@ -10,7 +10,7 @@ import StudentContentTab from '@/components/student/StudentContentTab';
 import StudentNoticesTab from '@/components/student/StudentNoticesTab';
 import StudentMessagesTab from '@/components/student/StudentMessagesTab';
 
-type Tab = 'schedule' | 'content' | 'notices' | 'messages';
+type Tab = 'schedule' | 'content' | 'notices';
 
 export default function StudentDashboardPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -45,8 +45,7 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
   const TABS: { key: Tab; label: string; icon: string; badge?: number }[] = [
     { key: 'schedule', label: '내 시간표', icon: '📅' },
     { key: 'content',  label: '수업 내용', icon: '📝' },
-    { key: 'notices',  label: '공지사항',  icon: '📢' },
-    { key: 'messages', label: '메시지',    icon: '💬', badge: unreadCount },
+    { key: 'notices',  label: '공지·메시지', icon: '📢', badge: unreadCount },
   ];
 
   return (
@@ -116,8 +115,21 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
         <div className="p-5 max-w-3xl mx-auto">
           {tab === 'schedule' && <StudentScheduleTab studentId={id} myClasses={myClasses} />}
           {tab === 'content'  && <StudentContentTab myClasses={myClasses} />}
-          {tab === 'notices'  && <StudentNoticesTab myClasses={myClasses} />}
-          {tab === 'messages' && <StudentMessagesTab studentId={id} />}
+          {tab === 'notices'  && (
+            <>
+              <StudentNoticesTab myClasses={myClasses} />
+              <div className="mt-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-base">💬</span>
+                  <h2 className="font-bold text-slate-700 text-sm">선생님 메시지</h2>
+                  {unreadCount > 0 && (
+                    <span className="px-2 py-0.5 bg-red-500 text-white text-xs rounded-full font-bold">{unreadCount} 새 메시지</span>
+                  )}
+                </div>
+                <StudentMessagesTab studentId={id} />
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

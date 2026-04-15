@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAcademyStore } from '@/lib/store';
 import { Student } from '@/lib/types';
 
@@ -17,6 +18,7 @@ const emptyStudent = (): Student => ({
 
 export default function StudentsPage() {
   const { students, classes, enrollments, addStudent, updateStudent, deleteStudent } = useAcademyStore();
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState<Student | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -136,6 +138,12 @@ export default function StudentsPage() {
                     <td className="px-5 py-3.5 text-slate-400 text-xs hidden lg:table-cell">{s.joinDate}</td>
                     <td className="px-5 py-3.5">
                       <div className="flex gap-2">
+                        <button
+                          onClick={() => router.push(`/students/${s.id}?tab=messages`)}
+                          className="text-xs text-blue-500 hover:text-blue-700 border border-blue-200 px-2.5 py-1 rounded-lg hover:bg-blue-50"
+                        >
+                          💬 메시지
+                        </button>
                         <button onClick={() => openEdit(s)} className="text-xs text-slate-500 hover:text-slate-800 border border-slate-200 px-2.5 py-1 rounded-lg hover:bg-slate-50">수정</button>
                         <button onClick={() => { if (confirm(`"${s.name}" 학생을 삭제할까요?`)) deleteStudent(s.id); }} className="text-xs text-red-400 hover:text-red-600 border border-red-200 px-2.5 py-1 rounded-lg hover:bg-red-50">삭제</button>
                       </div>

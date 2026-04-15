@@ -6,10 +6,17 @@ import { useAcademyStore } from '@/lib/store';
 
 type Tab = 'info' | 'messages';
 
-export default function StudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default function StudentDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ tab?: string }>;
+}) {
   const { id } = use(params);
+  const { tab: initialTab } = use(searchParams);
   const { students, classes, enrollments, attendances, messages, sendMessage, deleteMessage } = useAcademyStore();
-  const [tab, setTab] = useState<Tab>('info');
+  const [tab, setTab] = useState<Tab>((initialTab as Tab) || 'info');
   const [msgText, setMsgText] = useState('');
 
   const student = students.find((s) => s.id === id);
