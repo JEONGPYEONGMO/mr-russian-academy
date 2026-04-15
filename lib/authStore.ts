@@ -50,6 +50,10 @@ export const useAuthStore = create<AuthStore>()(
 
       studentLogout: () => set({ loggedInStudentId: null }),
     }),
-    { name: 'mr-russian-auth' },
+    {
+      name: 'mr-russian-auth',
+      // adminLoggedIn은 저장하지 않음 → 새로 고침/재접속 시 항상 로그인 필요
+      partialize: (state) => ({ loggedInStudentId: state.loggedInStudentId }),
+    },
   ),
 );
