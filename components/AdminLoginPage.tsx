@@ -10,7 +10,7 @@ export default function AdminLoginPage() {
   const [shake, setShake] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { inputRef.current?.focus(); }, []);
+  useEffect(() => { setTimeout(() => inputRef.current?.focus(), 80); }, []);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -32,68 +32,67 @@ export default function AdminLoginPage() {
         <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl" />
       </div>
 
-      <div className={`relative w-full max-w-sm mx-4 transition-all ${shake ? 'animate-shake' : ''}`}>
-        {/* 로고 카드 */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/10 backdrop-blur border border-white/20 mb-4 shadow-xl">
-            <span className="text-3xl">🇷🇺</span>
-          </div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight">MR Russian</h1>
-          <p className="text-blue-300 text-sm mt-1">어학원 관리 시스템</p>
-        </div>
-
-        {/* 로그인 폼 */}
+      {/* 모달 */}
+      <div className={`relative w-full max-w-sm mx-4 ${shake ? 'animate-shake' : ''}`}>
         <form
           onSubmit={handleSubmit}
-          className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 shadow-2xl"
+          className="bg-white rounded-2xl shadow-2xl overflow-hidden"
         >
-          <h2 className="text-white font-bold text-lg mb-6 text-center">관리자 로그인</h2>
+          {/* 상단 헤더 */}
+          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 px-8 py-7 text-center">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white/20 backdrop-blur border border-white/30 mb-3 shadow-lg">
+              <span className="text-3xl">🇷🇺</span>
+            </div>
+            <h1 className="text-xl font-extrabold text-white tracking-tight">MR Russian</h1>
+            <p className="text-blue-200 text-xs mt-1">어학원 관리 시스템</p>
+          </div>
 
-          <div className="space-y-4">
-            <div>
-              <label className="block text-blue-200 text-xs font-semibold mb-2 uppercase tracking-wide">
-                관리자 비밀번호
+          {/* 입력 영역 */}
+          <div className="px-8 py-7">
+            <h2 className="text-slate-800 font-bold text-base mb-5 text-center">관리자 로그인</h2>
+
+            <div className="mb-5">
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">
+                비밀번호
               </label>
               <input
                 ref={inputRef}
                 type="password"
                 value={pw}
                 onChange={(e) => { setPw(e.target.value); setError(false); }}
-                placeholder="비밀번호를 입력하세요"
-                className={`w-full bg-white/10 border rounded-xl px-4 py-3 text-white placeholder:text-white/30 outline-none transition-all text-sm ${
+                placeholder="관리자 비밀번호 입력"
+                className={`w-full border rounded-xl px-4 py-3 text-slate-800 placeholder:text-slate-300 outline-none transition-all text-sm font-medium ${
                   error
-                    ? 'border-red-400 focus:border-red-400'
-                    : 'border-white/20 focus:border-blue-400 focus:bg-white/15'
+                    ? 'border-red-400 bg-red-50 focus:border-red-400'
+                    : 'border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'
                 }`}
               />
-              {error && (
-                <p className="text-red-400 text-xs mt-2 flex items-center gap-1">
+              {error ? (
+                <p className="text-red-500 text-xs mt-2 flex items-center gap-1">
                   <span>⚠</span> 비밀번호가 올바르지 않습니다
                 </p>
+              ) : (
+                <p className="text-slate-400 text-xs mt-2">관리자 전용 접근입니다</p>
               )}
             </div>
 
             <button
               type="submit"
-              className="w-full py-3 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-900/50 text-sm"
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold rounded-xl transition-all shadow-sm text-sm"
             >
               로그인
             </button>
           </div>
-
-          <p className="text-center text-white/30 text-xs mt-6">
-            학생 페이지는 우측 하단 버튼을 이용하세요
-          </p>
         </form>
-      </div>
 
-      {/* 학생 페이지 바로가기 */}
-      <a
-        href="/student"
-        className="fixed bottom-6 right-6 flex items-center gap-2 px-4 py-2.5 bg-white/10 backdrop-blur border border-white/20 rounded-full text-white text-sm font-semibold hover:bg-white/20 transition-all shadow-lg"
-      >
-        🎓 학생 페이지
-      </a>
+        {/* 학생 페이지 링크 */}
+        <p className="text-center text-white/40 text-xs mt-4">
+          학생이신가요?{' '}
+          <a href="/student" className="text-blue-300 hover:text-white underline transition-colors">
+            학생 페이지로 이동
+          </a>
+        </p>
+      </div>
 
       <style>{`
         @keyframes shake {
