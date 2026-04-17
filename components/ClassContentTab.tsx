@@ -108,7 +108,7 @@ export default function ClassContentTab({ classId }: Props) {
       {showForm && (
         <div className="bg-white rounded-xl border border-blue-200 shadow-sm p-5 space-y-3">
           <h3 className="font-semibold text-slate-700">{editing ? '수업 기록 수정' : '새 수업 기록'}</h3>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-medium text-slate-500 block mb-1">날짜</label>
               <input type="date" className="input-field" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />

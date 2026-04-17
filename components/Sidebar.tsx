@@ -4,6 +4,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/lib/authStore';
 
+interface SidebarProps {
+  onClose?: () => void;
+}
+
 const navGroups = [
   {
     label: '관리자',
@@ -28,16 +32,29 @@ const navGroups = [
   },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ onClose }: SidebarProps) {
   const pathname = usePathname();
   const adminLogout = useAuthStore((s) => s.adminLogout);
 
   return (
     <aside className="w-52 bg-white border-r border-slate-200 flex flex-col h-full shrink-0 shadow-sm">
       {/* 로고 */}
-      <div className="px-5 py-5 border-b border-slate-100">
-        <div className="text-base font-extrabold text-blue-700 leading-tight tracking-tight">MR Russian</div>
-        <div className="text-[11px] text-slate-400 mt-0.5 font-medium">어학원 관리 시스템</div>
+      <div className="px-5 py-5 border-b border-slate-100 flex items-center justify-between">
+        <div>
+          <div className="text-base font-extrabold text-blue-700 leading-tight tracking-tight">MR Russian</div>
+          <div className="text-[11px] text-slate-400 mt-0.5 font-medium">어학원 관리 시스템</div>
+        </div>
+        {/* 모바일에서만 닫기 버튼 표시 */}
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors lg:hidden"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* 네비게이션 */}
@@ -56,6 +73,7 @@ export default function Sidebar() {
                   <Link
                     key={item.href}
                     href={item.href}
+                    onClick={onClose}
                     className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
                       active
                         ? 'bg-blue-600 text-white shadow-sm'

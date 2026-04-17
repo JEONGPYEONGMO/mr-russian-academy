@@ -56,21 +56,23 @@ export default function StudentsPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0">
+      <header className="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between shrink-0">
         <div>
-          <h1 className="text-xl font-bold text-slate-800">학생 관리</h1>
-          <p className="text-sm text-slate-500 mt-0.5">전체 {students.length}명</p>
+          <h1 className="text-base sm:text-xl font-bold text-slate-800">학생 관리</h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">전체 {students.length}명</p>
         </div>
-        <button onClick={openAdd} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors">
-          <span>+</span> 학생 등록
+        <button onClick={openAdd} className="flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+          <span>+</span>
+          <span className="hidden sm:inline">학생 등록</span>
+          <span className="sm:hidden">등록</span>
         </button>
       </header>
 
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 overflow-auto p-4 sm:p-6">
         {/* 검색 */}
-        <div className="mb-5">
+        <div className="mb-4">
           <input
-            className="w-full max-w-sm border border-slate-300 rounded-lg px-4 py-2 text-sm outline-none focus:border-blue-400 bg-white"
+            className="w-full sm:max-w-sm border border-slate-300 rounded-lg px-4 py-2 text-sm outline-none focus:border-blue-400 bg-white"
             placeholder="이름, 연락처, 이메일로 검색..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -79,9 +81,11 @@ export default function StudentsPage() {
 
         {/* 폼 */}
         {showForm && editing && (
-          <div className="mb-5 bg-white rounded-xl border border-blue-200 shadow-sm p-5">
-            <h3 className="font-semibold text-slate-700 mb-4">{students.find((s) => s.id === editing.id) ? '학생 정보 수정' : '새 학생 등록'}</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div className="mb-4 bg-white rounded-xl border border-blue-200 shadow-sm p-4 sm:p-5">
+            <h3 className="font-semibold text-slate-700 mb-3">
+              {students.find((s) => s.id === editing.id) ? '학생 정보 수정' : '새 학생 등록'}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
               <div>
                 <label className="text-xs font-medium text-slate-500 block mb-1">이름 *</label>
                 <input className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-400" value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
@@ -98,7 +102,7 @@ export default function StudentsPage() {
                 <label className="text-xs font-medium text-slate-500 block mb-1">등록일</label>
                 <input type="date" className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-400" value={editing.joinDate} onChange={(e) => setEditing({ ...editing, joinDate: e.target.value })} />
               </div>
-              <div className="md:col-span-2">
+              <div className="sm:col-span-2">
                 <label className="text-xs font-medium text-slate-500 block mb-1">메모</label>
                 <input className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-400" value={editing.memo} onChange={(e) => setEditing({ ...editing, memo: e.target.value })} />
               </div>
@@ -110,8 +114,43 @@ export default function StudentsPage() {
           </div>
         )}
 
-        {/* 학생 목록 테이블 */}
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        {/* 모바일 카드 리스트 */}
+        <div className="sm:hidden space-y-2">
+          {filtered.length === 0 ? (
+            <div className="bg-white rounded-xl border border-slate-200 p-10 text-center text-slate-400 text-sm">
+              학생이 없습니다
+            </div>
+          ) : (
+            filtered.map((s) => (
+              <div key={s.id} className="bg-white rounded-xl border border-slate-200 p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <Link href={`/students/${s.id}`} className="font-semibold text-blue-700 hover:underline">
+                      {s.name}
+                    </Link>
+                    <div className="text-sm text-slate-500 mt-0.5">{s.phone}</div>
+                    <div className="text-xs text-slate-400 mt-0.5 truncate">
+                      {getClassNames(s.id) || <span className="text-slate-300">수강 없음</span>}
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1 shrink-0">
+                    <button
+                      onClick={() => router.push(`/students/${s.id}?tab=messages`)}
+                      className="text-xs text-blue-500 border border-blue-200 px-2 py-1 rounded-lg hover:bg-blue-50"
+                    >
+                      💬
+                    </button>
+                    <button onClick={() => openEdit(s)} className="text-xs text-slate-500 border border-slate-200 px-2 py-1 rounded-lg hover:bg-slate-50">수정</button>
+                    <button onClick={() => { if (confirm(`"${s.name}" 학생을 삭제할까요?`)) deleteStudent(s.id); }} className="text-xs text-red-400 border border-red-200 px-2 py-1 rounded-lg hover:bg-red-50">삭제</button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* 데스크탑 테이블 */}
+        <div className="hidden sm:block bg-white rounded-xl border border-slate-200 overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
