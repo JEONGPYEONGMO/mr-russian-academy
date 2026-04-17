@@ -64,9 +64,14 @@ export default function ImportPage() {
 
   // ── Firebase 이전 상태 ──
   const [localData, setLocalData] = useState<LocalStoreState | null>(null);
+  const [localRaw, setLocalRaw] = useState<string | null>(null); // 원본 키 존재 여부
   const [migrating, setMigrating] = useState(false);
   const [migrated, setMigrated] = useState(false);
   const [migrateError, setMigrateError] = useState('');
+
+  // ── Firebase 연결 테스트 ──
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
 
   // ── 백업 상태 ──
   const [backingUp, setBackingUp] = useState(false);
@@ -74,6 +79,8 @@ export default function ImportPage() {
 
   // 마운트 시 localStorage 데이터 확인
   useEffect(() => {
+    const raw = localStorage.getItem('mr-russian-store');
+    setLocalRaw(raw);
     setLocalData(readLocalStore());
   }, []);
 
@@ -118,6 +125,24 @@ export default function ImportPage() {
   function clearLocalStorage() {
     localStorage.removeItem('mr-russian-store');
     setLocalData(null);
+    setLocalRaw(null);
+  }
+
+  /* ── Firebase 연결 테스트 ── */
+  async function handleTestFirebase() {
+    setTesting(true);
+    setTestResult(null);
+    try {
+      await setDoc(doc(db, 'meta', 'connection-test'), {
+        ok: true,
+        at: new Date().toISOString(),
+      });
+      setTestResult({ ok: true, msg: '✅ Firebase 연결 및 쓰기 성공!' });
+    } catch (e) {
+      setTestResult({ ok: false, msg: `❌ 실패: ${String(e)}` });
+    } finally {
+      setTesting(false);
+    }
   }
 
   /* ── 백업 ── */
@@ -267,75 +292,92 @@ export default function ImportPage() {
         <div className="max-w-3xl mx-auto space-y-5">
 
           {/* ── ☁️ Firebase 데이터 이전 ── */}
-          {(localData || migrated) && (
-            <div className={`rounded-2xl border p-5 sm:p-6 shadow-sm ${migrated ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'}`}>
-              <h2 className="font-bold text-slate-800 mb-1 flex items-center gap-2">
-                <span>☁️</span> Firebase 데이터 이전
-              </h2>
+          <div className={`rounded-2xl border p-5 sm:p-6 shadow-sm ${migrated ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'}`}>
+            <h2 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
+              <span>☁️</span> Firebase 연결 및 데이터 이전
+            </h2>
 
-              {migrated ? (
-                <div className="space-y-3">
-                  <p className="text-sm text-green-700 font-semibold">✅ Firebase 업로드 완료! 모든 기기에서 데이터를 사용할 수 있습니다.</p>
-                  <button
-                    onClick={clearLocalStorage}
-                    className="text-xs px-4 py-2 border border-slate-300 text-slate-600 rounded-lg hover:bg-white transition-colors"
-                  >
-                    이 PC의 로컬 데이터 삭제 (정리)
-                  </button>
-                </div>
+            {/* Firebase 연결 테스트 */}
+            <div className="mb-4 p-3 bg-white rounded-xl border border-slate-200">
+              <div className="flex items-center gap-3 flex-wrap">
+                <button
+                  onClick={handleTestFirebase}
+                  disabled={testing}
+                  className="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white text-sm font-bold rounded-lg hover:bg-slate-800 disabled:opacity-50 transition-colors"
+                >
+                  {testing ? (
+                    <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />테스트 중...</>
+                  ) : '🔌 Firebase 쓰기 테스트'}
+                </button>
+                {testResult && (
+                  <span className={`text-sm font-semibold ${testResult.ok ? 'text-green-700' : 'text-red-600'}`}>
+                    {testResult.msg}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-400 mt-2">먼저 이 버튼으로 Firebase 연결을 확인하세요</p>
+            </div>
+
+            {/* localStorage 상태 */}
+            <div className="mb-4 p-3 bg-white rounded-xl border border-slate-200 text-sm">
+              <div className="font-semibold text-slate-700 mb-1">이 PC 로컬 데이터 상태</div>
+              {localRaw === null ? (
+                <p className="text-slate-400 text-xs">localStorage에 기존 데이터 없음 (이미 이전됐거나 처음 사용)</p>
               ) : localData ? (
-                <>
-                  <p className="text-sm text-slate-600 mb-4">
-                    이 PC에 저장된 기존 데이터를 감지했습니다. Firebase에 업로드하면 모든 기기에서 공유됩니다.
-                  </p>
-
-                  {/* 감지된 데이터 요약 */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
-                    {[
-                      { label: '학생',     count: localData.students?.length ?? 0,    color: 'bg-purple-100 text-purple-700' },
-                      { label: '수업',     count: localData.classes?.length ?? 0,     color: 'bg-blue-100 text-blue-700' },
-                      { label: '수강등록', count: localData.enrollments?.length ?? 0, color: 'bg-green-100 text-green-700' },
-                      { label: '출석기록', count: localData.attendances?.length ?? 0, color: 'bg-yellow-100 text-yellow-700' },
-                    ].map((item) => (
-                      <div key={item.label} className={`${item.color} rounded-xl p-2.5 text-center`}>
-                        <div className="text-xl font-extrabold">{item.count}</div>
-                        <div className="text-xs font-semibold mt-0.5">{item.label}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {migrateError && (
-                    <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700">
-                      오류: {migrateError}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
+                  {[
+                    { label: '학생',     count: localData.students?.length ?? 0,    color: 'bg-purple-100 text-purple-700' },
+                    { label: '수업',     count: localData.classes?.length ?? 0,     color: 'bg-blue-100 text-blue-700' },
+                    { label: '수강등록', count: localData.enrollments?.length ?? 0, color: 'bg-green-100 text-green-700' },
+                    { label: '출석기록', count: localData.attendances?.length ?? 0, color: 'bg-yellow-100 text-yellow-700' },
+                  ].map((item) => (
+                    <div key={item.label} className={`${item.color} rounded-lg p-2 text-center`}>
+                      <div className="text-lg font-extrabold">{item.count}</div>
+                      <div className="text-xs font-semibold">{item.label}</div>
                     </div>
-                  )}
+                  ))}
+                </div>
+              ) : (
+                <p className="text-slate-400 text-xs">localStorage 키는 있지만 데이터가 비어 있음</p>
+              )}
+            </div>
 
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      onClick={handleMigrate}
-                      disabled={migrating}
-                      className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-sm"
-                    >
-                      {migrating ? (
-                        <>
-                          <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          업로드 중...
-                        </>
-                      ) : (
-                        <>☁️ Firebase에 업로드</>
-                      )}
-                    </button>
-                    <button
-                      onClick={clearLocalStorage}
-                      className="px-4 py-2.5 border border-slate-300 text-slate-600 text-sm font-semibold rounded-xl hover:bg-white transition-colors"
-                    >
+            {migrated ? (
+              <div className="space-y-3">
+                <p className="text-sm text-green-700 font-semibold">✅ Firebase 업로드 완료! 모든 기기에서 데이터를 사용할 수 있습니다.</p>
+                <button onClick={clearLocalStorage} className="text-xs px-4 py-2 border border-slate-300 text-slate-600 rounded-lg hover:bg-white">
+                  이 PC의 로컬 데이터 삭제 (정리)
+                </button>
+              </div>
+            ) : (
+              <>
+                {migrateError && (
+                  <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 break-all">
+                    오류: {migrateError}
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={handleMigrate}
+                    disabled={migrating || !localData}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 disabled:opacity-40 transition-colors shadow-sm"
+                  >
+                    {migrating ? (
+                      <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />업로드 중...</>
+                    ) : '☁️ Firebase에 업로드'}
+                  </button>
+                  {localData && (
+                    <button onClick={clearLocalStorage} className="px-4 py-2.5 border border-slate-300 text-slate-600 text-sm font-semibold rounded-xl hover:bg-white">
                       무시하고 삭제
                     </button>
-                  </div>
-                </>
-              ) : null}
-            </div>
-          )}
+                  )}
+                </div>
+                {!localData && (
+                  <p className="text-xs text-slate-400 mt-2">로컬 데이터가 없으면 업로드할 내용이 없습니다.</p>
+                )}
+              </>
+            )}
+          </div>
 
           {/* ── 백업 섹션 ── */}
           <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm">
