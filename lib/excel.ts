@@ -3,7 +3,7 @@
 import * as XLSX from 'xlsx';
 import type {
   Student, ClassSession, Enrollment,
-  AttendanceRecord, ClassContent, Instructor,
+  AttendanceRecord, ClassContent, Instructor, Notice, Message,
 } from './types';
 
 // ── 엑셀 컬럼 너비 설정 헬퍼 ─────────────────────────────────────
@@ -12,16 +12,20 @@ function colWidths(sizes: number[]) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-//  EXPORT: 현재 데이터 → 엑셀 다운로드
+//  공통: Workbook 생성
 // ─────────────────────────────────────────────────────────────────
-export function exportToExcel(data: {
+export interface ExportData {
   students: Student[];
   classes: ClassSession[];
   enrollments: Enrollment[];
   attendances: AttendanceRecord[];
   contents: ClassContent[];
   instructors: Instructor[];
-}) {
+  notices?: Notice[];
+  messages?: Message[];
+}
+
+function buildWorkbook(data: ExportData): XLSX.WorkBook {
   const wb = XLSX.utils.book_new();
 
   const STATUS_KO: Record<string, string> = {
@@ -98,7 +102,36 @@ export function exportToExcel(data: {
     '수업내용',
   );
 
-  /* ── 시트6: 안내(읽기전용) ── */
+  /* ── 시트6: 공지사항 ── */
+  if (data.notices && data.notices.length > 0) {
+    XLSX.utils.book_append_sheet(
+      wb,
+      sheetFrom(
+        ['제목', '내용', '대상수업ID', '작성일'],
+        data.notices.map((n) => [n.title, n.body, n.classId ?? '전체', n.createdAt]),
+        colWidths([24, 60, 16, 24]),
+      ),
+      '공지사항',
+    );
+  }
+
+  /* ── 시트7: 메시지 ── */
+  if (data.messages && data.messages.length > 0) {
+    XLSX.utils.book_append_sheet(
+      wb,
+      sheetFrom(
+        ['학생이름', '내용', '발송일', '읽음'],
+        data.messages.map((m) => {
+          const s = data.students.find((x) => x.id === m.studentId);
+          return [s?.name ?? m.studentId, m.content, m.createdAt, m.read ? '읽음' : '미확인'];
+        }),
+        colWidths([14, 60, 24, 10]),
+      ),
+      '메시지',
+    );
+  }
+
+  /* ── 시트8: 안내(읽기전용) ── */
   XLSX.utils.book_append_sheet(
     wb,
     sheetFrom(
@@ -119,7 +152,23 @@ export function exportToExcel(data: {
     '📋 사용안내',
   );
 
+  return wb;
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  EXPORT: 현재 데이터 → 브라우저 다운로드
+// ─────────────────────────────────────────────────────────────────
+export function exportToExcel(data: ExportData) {
+  const wb = buildWorkbook(data);
   XLSX.writeFile(wb, 'MR_Russian_마스터_데이터.xlsx');
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  BACKUP: 엑셀 Base64 반환 (로컬 폴더 저장용)
+// ─────────────────────────────────────────────────────────────────
+export function getExcelBase64(data: ExportData): string {
+  const wb = buildWorkbook(data);
+  return XLSX.write(wb, { type: 'base64', bookType: 'xlsx' }) as string;
 }
 
 // ─────────────────────────────────────────────────────────────────
