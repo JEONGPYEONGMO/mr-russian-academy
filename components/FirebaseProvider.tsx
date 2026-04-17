@@ -43,75 +43,93 @@ export default function FirebaseProvider({ children }: { children: React.ReactNo
     const ready = new Set<string>();
 
     function markReady(col: string) {
+      if (ready.has(col)) return;
       ready.add(col);
       if (ready.size === COLLECTIONS.length) {
         useAcademyStore.setState({ loading: false });
       }
     }
 
-    // 시드 후 리스너 등록
-    seedIfNeeded().then(() => {
-      const unsubs = [
-        onSnapshot(collection(db, 'instructors'), (snap) => {
-          useAcademyStore.setState({
-            instructors: snap.docs.map((d) => ({ id: d.id, ...d.data() } as Instructor)),
-          });
+    // 리스너 즉시 등록 — 시드 완료를 기다리지 않음
+    const unsubs = [
+      onSnapshot(
+        collection(db, 'instructors'),
+        (snap) => {
+          useAcademyStore.setState({ instructors: snap.docs.map((d) => ({ id: d.id, ...d.data() } as Instructor)) });
           markReady('instructors');
-        }),
-
-        onSnapshot(collection(db, 'classes'), (snap) => {
-          useAcademyStore.setState({
-            classes: snap.docs.map((d) => ({ id: d.id, ...d.data() } as ClassSession)),
-          });
+        },
+        () => markReady('instructors'), // 오류 시에도 ready 처리
+      ),
+      onSnapshot(
+        collection(db, 'classes'),
+        (snap) => {
+          useAcademyStore.setState({ classes: snap.docs.map((d) => ({ id: d.id, ...d.data() } as ClassSession)) });
           markReady('classes');
-        }),
-
-        onSnapshot(collection(db, 'students'), (snap) => {
-          useAcademyStore.setState({
-            students: snap.docs.map((d) => ({ id: d.id, ...d.data() } as Student)),
-          });
+        },
+        () => markReady('classes'),
+      ),
+      onSnapshot(
+        collection(db, 'students'),
+        (snap) => {
+          useAcademyStore.setState({ students: snap.docs.map((d) => ({ id: d.id, ...d.data() } as Student)) });
           markReady('students');
-        }),
-
-        onSnapshot(collection(db, 'enrollments'), (snap) => {
-          useAcademyStore.setState({
-            enrollments: snap.docs.map((d) => ({ id: d.id, ...d.data() } as Enrollment)),
-          });
+        },
+        () => markReady('students'),
+      ),
+      onSnapshot(
+        collection(db, 'enrollments'),
+        (snap) => {
+          useAcademyStore.setState({ enrollments: snap.docs.map((d) => ({ id: d.id, ...d.data() } as Enrollment)) });
           markReady('enrollments');
-        }),
-
-        onSnapshot(collection(db, 'attendances'), (snap) => {
-          useAcademyStore.setState({
-            attendances: snap.docs.map((d) => ({ id: d.id, ...d.data() } as AttendanceRecord)),
-          });
+        },
+        () => markReady('enrollments'),
+      ),
+      onSnapshot(
+        collection(db, 'attendances'),
+        (snap) => {
+          useAcademyStore.setState({ attendances: snap.docs.map((d) => ({ id: d.id, ...d.data() } as AttendanceRecord)) });
           markReady('attendances');
-        }),
-
-        onSnapshot(collection(db, 'contents'), (snap) => {
-          useAcademyStore.setState({
-            contents: snap.docs.map((d) => ({ id: d.id, ...d.data() } as ClassContent)),
-          });
+        },
+        () => markReady('attendances'),
+      ),
+      onSnapshot(
+        collection(db, 'contents'),
+        (snap) => {
+          useAcademyStore.setState({ contents: snap.docs.map((d) => ({ id: d.id, ...d.data() } as ClassContent)) });
           markReady('contents');
-        }),
-
-        onSnapshot(collection(db, 'notices'), (snap) => {
-          useAcademyStore.setState({
-            notices: snap.docs.map((d) => ({ id: d.id, ...d.data() } as Notice)),
-          });
+        },
+        () => markReady('contents'),
+      ),
+      onSnapshot(
+        collection(db, 'notices'),
+        (snap) => {
+          useAcademyStore.setState({ notices: snap.docs.map((d) => ({ id: d.id, ...d.data() } as Notice)) });
           markReady('notices');
-        }),
-
-        onSnapshot(collection(db, 'messages'), (snap) => {
-          useAcademyStore.setState({
-            messages: snap.docs.map((d) => ({ id: d.id, ...d.data() } as Message)),
-          });
+        },
+        () => markReady('notices'),
+      ),
+      onSnapshot(
+        collection(db, 'messages'),
+        (snap) => {
+          useAcademyStore.setState({ messages: snap.docs.map((d) => ({ id: d.id, ...d.data() } as Message)) });
           markReady('messages');
-        }),
-      ];
+        },
+        () => markReady('messages'),
+      ),
+    ];
 
-      // 언마운트 시 리스너 해제
-      return () => unsubs.forEach((u) => u());
-    });
+    // 시드는 병렬로 실행 (리스너와 무관)
+    seedIfNeeded().catch(console.error);
+
+    // 10초 안에 로드 안 되면 강제 해제
+    const timeout = setTimeout(() => {
+      useAcademyStore.setState({ loading: false });
+    }, 10000);
+
+    return () => {
+      unsubs.forEach((u) => u());
+      clearTimeout(timeout);
+    };
   }, []);
 
   if (loading) {
