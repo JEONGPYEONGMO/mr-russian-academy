@@ -73,43 +73,43 @@ export const useAcademyStore = create<AcademyStore>()((set) => ({
   // ── Classes ────────────────────────────────────────────────────
   addClass: (c) => {
     set((s) => ({ classes: [...s.classes, c] }));
-    setDoc(doc(db, 'classes', c.id), c);
+    setDoc(doc(db, 'classes', c.id), c).catch((e) => console.error('[FB] addClass:', e));
   },
   updateClass: (c) => {
     set((s) => ({ classes: s.classes.map((x) => (x.id === c.id ? c : x)) }));
-    setDoc(doc(db, 'classes', c.id), c);
+    setDoc(doc(db, 'classes', c.id), c).catch((e) => console.error('[FB] updateClass:', e));
   },
   deleteClass: (id) => {
     set((s) => ({ classes: s.classes.filter((x) => x.id !== id) }));
-    deleteDoc(doc(db, 'classes', id));
+    deleteDoc(doc(db, 'classes', id)).catch((e) => console.error('[FB] deleteClass:', e));
   },
 
   // ── Students ───────────────────────────────────────────────────
   addStudent: (st) => {
     set((s) => ({ students: [...s.students, st] }));
-    setDoc(doc(db, 'students', st.id), st);
+    setDoc(doc(db, 'students', st.id), st).catch((e) => console.error('[FB] addStudent:', e));
   },
   updateStudent: (st) => {
     set((s) => ({ students: s.students.map((x) => (x.id === st.id ? st : x)) }));
-    setDoc(doc(db, 'students', st.id), st);
+    setDoc(doc(db, 'students', st.id), st).catch((e) => console.error('[FB] updateStudent:', e));
   },
   deleteStudent: (id) => {
     set((s) => ({ students: s.students.filter((x) => x.id !== id) }));
-    deleteDoc(doc(db, 'students', id));
+    deleteDoc(doc(db, 'students', id)).catch((e) => console.error('[FB] deleteStudent:', e));
   },
 
   // ── Enrollments ────────────────────────────────────────────────
   addEnrollment: (e) => {
     set((s) => ({ enrollments: [...s.enrollments, e] }));
-    setDoc(doc(db, 'enrollments', e.id), e);
+    setDoc(doc(db, 'enrollments', e.id), e).catch((e2) => console.error('[FB] addEnrollment:', e2));
   },
   updateEnrollment: (e) => {
     set((s) => ({ enrollments: s.enrollments.map((x) => (x.id === e.id ? e : x)) }));
-    setDoc(doc(db, 'enrollments', e.id), e);
+    setDoc(doc(db, 'enrollments', e.id), e).catch((e2) => console.error('[FB] updateEnrollment:', e2));
   },
   removeEnrollment: (id) => {
     set((s) => ({ enrollments: s.enrollments.filter((x) => x.id !== id) }));
-    deleteDoc(doc(db, 'enrollments', id));
+    deleteDoc(doc(db, 'enrollments', id)).catch((e) => console.error('[FB] removeEnrollment:', e));
   },
 
   // ── Attendance ─────────────────────────────────────────────────
@@ -125,56 +125,56 @@ export const useAcademyStore = create<AcademyStore>()((set) => ({
       }
       return { attendances: [...s.attendances, a] };
     });
-    setDoc(doc(db, 'attendances', a.id), a);
+    setDoc(doc(db, 'attendances', a.id), a).catch((e) => console.error('[FB] upsertAttendance:', e));
   },
 
   // ── Content ────────────────────────────────────────────────────
   addContent: (c) => {
     set((s) => ({ contents: [...s.contents, c] }));
-    setDoc(doc(db, 'contents', c.id), c);
+    setDoc(doc(db, 'contents', c.id), c).catch((e) => console.error('[FB] addContent:', e));
   },
   updateContent: (c) => {
     set((s) => ({ contents: s.contents.map((x) => (x.id === c.id ? c : x)) }));
-    setDoc(doc(db, 'contents', c.id), c);
+    setDoc(doc(db, 'contents', c.id), c).catch((e) => console.error('[FB] updateContent:', e));
   },
   deleteContent: (id) => {
     set((s) => ({ contents: s.contents.filter((x) => x.id !== id) }));
-    deleteDoc(doc(db, 'contents', id));
+    deleteDoc(doc(db, 'contents', id)).catch((e) => console.error('[FB] deleteContent:', e));
   },
 
   // ── Notices ────────────────────────────────────────────────────
   addNotice: (n) => {
     set((s) => ({ notices: [n, ...s.notices] }));
-    setDoc(doc(db, 'notices', n.id), n);
+    setDoc(doc(db, 'notices', n.id), n).catch((e) => console.error('[FB] addNotice:', e));
   },
   deleteNotice: (id) => {
     set((s) => ({ notices: s.notices.filter((x) => x.id !== id) }));
-    deleteDoc(doc(db, 'notices', id));
+    deleteDoc(doc(db, 'notices', id)).catch((e) => console.error('[FB] deleteNotice:', e));
   },
 
   // ── Instructors ────────────────────────────────────────────────
   addInstructor: (i) => {
     set((s) => ({ instructors: [...s.instructors, i] }));
-    setDoc(doc(db, 'instructors', i.id), i);
+    setDoc(doc(db, 'instructors', i.id), i).catch((e) => console.error('[FB] addInstructor:', e));
   },
   updateInstructor: (i) => {
     set((s) => ({ instructors: s.instructors.map((x) => (x.id === i.id ? i : x)) }));
-    setDoc(doc(db, 'instructors', i.id), i);
+    setDoc(doc(db, 'instructors', i.id), i).catch((e) => console.error('[FB] updateInstructor:', e));
   },
 
   // ── Messages ───────────────────────────────────────────────────
   sendMessage: (m) => {
     set((s) => ({ messages: [m, ...s.messages] }));
-    setDoc(doc(db, 'messages', m.id), m);
+    setDoc(doc(db, 'messages', m.id), m).catch((e) => console.error('[FB] sendMessage:', e));
   },
   deleteMessage: (id) => {
     set((s) => ({ messages: s.messages.filter((x) => x.id !== id) }));
-    deleteDoc(doc(db, 'messages', id));
+    deleteDoc(doc(db, 'messages', id)).catch((e) => console.error('[FB] deleteMessage:', e));
   },
   markMessageRead: (id) => {
     set((s) => ({
       messages: s.messages.map((x) => (x.id === id ? { ...x, read: true } : x)),
     }));
-    setDoc(doc(db, 'messages', id), { read: true }, { merge: true });
+    setDoc(doc(db, 'messages', id), { read: true }, { merge: true }).catch((e) => console.error('[FB] markMessageRead:', e));
   },
 }));
